@@ -4,7 +4,7 @@ import jakarta.persistence.*
 import jakarta.validation.constraints.Size
 
 @Entity
-@Table(name = "member", schema = "portfolio")
+@Table(name = "member", schema = "test")
 data class MemberEntity(
     @Id
     @Column(name = "mem_idx")

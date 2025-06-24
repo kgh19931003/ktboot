@@ -76,6 +76,7 @@ class WebSecurityConfig {
                 "/auth/**",
                 "/auth/login",
                 "/member/**",
+                "/product/**",
                 "/dashboard/**",
                 "/img/**",
                 //"/api/**",
@@ -84,7 +85,7 @@ class WebSecurityConfig {
                 "/kotlin/**",
                 "/php/**",
                 "/resources/**",
-
+                "/upload/**",
                 "/error"
             )
                 .permitAll()

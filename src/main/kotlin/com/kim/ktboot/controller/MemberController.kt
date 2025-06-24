@@ -33,7 +33,7 @@ class MemberController (
 
 
     @GetMapping("/list")
-    fun memberList(form: SearchForm): ListPagination<MemberList> {
+    fun memberList(form: MemberSearchForm): ListPagination<MemberList> {
         return memberService.getMemberList(form)
     }
 
@@ -53,7 +53,7 @@ class MemberController (
 
     @PutMapping("/update/{id}")
     @Transactional
-    fun memberUpdate(@PathVariable id: Long, @RequestBody form: SearchForm): MemberEntity {
+    fun memberUpdate(@PathVariable id: Long, @RequestBody form: MemberSearchForm): MemberEntity {
         // 직접 객체의 필드를 수정
         val member = memberRepository.findByMemId(form.memberId!!).copy(
             id = id,
@@ -81,7 +81,7 @@ class MemberController (
 
     @GetMapping("/excel")
     fun downloadUserListExcel(
-            @ModelAttribute form: SearchForm,
+            @ModelAttribute form: MemberSearchForm,
             response: HttpServletResponse
     ) {
         excelService.memberExcelDownload(memberService.getMemberList(form), response, "회원목록")

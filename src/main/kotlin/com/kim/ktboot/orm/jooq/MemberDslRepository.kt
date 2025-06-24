@@ -3,7 +3,7 @@ package com.kim.ktboot.orm.jooq
 
 import com.kim.ktboot.form.ListPagination
 import com.kim.ktboot.form.MemberList
-import com.kim.ktboot.form.SearchForm
+import com.kim.ktboot.form.MemberSearchForm
 import com.kim.ktboot.jooq.portfolio.tables.references.MEMBER
 import com.kim.ktboot.proto.isNotNull
 import com.kim.ktboot.proto.`when`
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Repository
 class MemberDslRepository(
     private val dsl: DSLContext,
 ) {
-    fun getMemberQuery(form: SearchForm): SelectConditionStep<Record6<Long?, String?, String?, String?, String?, String?>> {
+    fun getMemberQuery(form: MemberSearchForm): SelectConditionStep<Record6<Long?, String?, String?, String?, String?, String?>> {
         return dsl.select(
                 MEMBER.MEM_IDX.`as`("memberIdx"),
                 MEMBER.MEM_ID.`as`("memberId"),
@@ -32,11 +32,11 @@ class MemberDslRepository(
     }
 
 
-    fun getMemberOne(form: SearchForm): List<MemberList> {
+    fun getMemberOne(form: MemberSearchForm): List<MemberList> {
         return getMemberQuery(form).fetch { it.into(MemberList::class.java) }
     }
 
-    fun getMemberList(form: SearchForm): ListPagination<MemberList> {
+    fun getMemberList(form: MemberSearchForm): ListPagination<MemberList> {
         val query = getMemberQuery(form)
         return ListPagination.of(dsl, query, form) { record ->
             record.into(MemberList::class.java)

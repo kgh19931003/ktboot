@@ -2,7 +2,7 @@ package com.kim.ktboot.orm.jooq
 
 
 import com.kim.ktboot.form.ListPagination
-import com.kim.ktboot.form.SearchForm
+import com.kim.ktboot.form.MemberSearchForm
 import com.kim.ktboot.jooq.portfolio.tables.references.MEMBER
 import com.kim.ktboot.proto.isNotNull
 import com.kim.ktboot.proto.`when`

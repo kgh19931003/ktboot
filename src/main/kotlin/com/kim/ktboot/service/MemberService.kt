@@ -4,7 +4,7 @@ package com.kim.ktboot.service
 
 import com.kim.ktboot.form.ListPagination
 import com.kim.ktboot.form.MemberList
-import com.kim.ktboot.form.SearchForm
+import com.kim.ktboot.form.MemberSearchForm
 import com.kim.ktboot.orm.jooq.MemberDslRepository
 import com.kim.ktboot.orm.jpa.MemberEntity
 import com.kim.ktboot.orm.jpa.MemberRepository
@@ -40,7 +40,7 @@ class MemberService(
     /**
      * 특정 회원정보 조회
      */
-    fun getMemberList(form: SearchForm): ListPagination<MemberList> {
+    fun getMemberList(form: MemberSearchForm): ListPagination<MemberList> {
         return try {
             memberDslRepository.getMemberList(form).map{
                 MemberList(

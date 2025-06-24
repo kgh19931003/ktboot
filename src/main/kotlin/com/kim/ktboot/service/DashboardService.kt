@@ -4,7 +4,7 @@ package com.kim.ktboot.service
 
 import com.kim.ktboot.form.ListPagination
 import com.kim.ktboot.form.MemberList
-import com.kim.ktboot.form.SearchForm
+import com.kim.ktboot.form.MemberSearchForm
 import com.kim.ktboot.orm.jooq.DashboardDslRepository
 import com.kim.ktboot.orm.jooq.MemberDslRepository
 import com.kim.ktboot.orm.jpa.MemberEntity
