@@ -1,6 +1,11 @@
 package com.kim.ktboot.proto
 
 
+fun String.combine(str: String): String? {
+    return this+str;
+}
+
+
 
 fun String?.removeBearerPrefix(): String? {
     return when {

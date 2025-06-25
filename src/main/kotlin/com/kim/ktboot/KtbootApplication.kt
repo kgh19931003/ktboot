@@ -4,10 +4,12 @@ import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 import java.util.*
 
 @SpringBootApplication
 @EnableEncryptableProperties
+@EnableJpaAuditing
 class KtbootApplication
 
 fun main(args: Array<String>) {

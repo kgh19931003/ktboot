@@ -9,6 +9,7 @@ import com.kim.ktboot.service.ExcelService
 import com.kim.ktboot.service.MemberService
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.transaction.Transactional
+import nowAsRegularFormat
 import org.apache.poi.ss.formula.functions.T
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -60,7 +61,7 @@ class MemberController (
             memPassword = passwordEncoder.encode(form.memberPassword),
             memName = form.memberName,
             memGender = form.memberGender,
-            memUpdatedAt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            memUpdatedAt = nowAsRegularFormat()
         )
         // 수정된 객체를 저장
         return memberService.save(member)

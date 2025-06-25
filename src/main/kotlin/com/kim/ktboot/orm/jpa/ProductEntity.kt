@@ -1,10 +1,14 @@
 package com.kim.ktboot.orm.jpa
 
 import jakarta.persistence.*
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.math.BigDecimal
 
 
 @Entity
+@EntityListeners(AuditingEntityListener::class)
 @Table(name = "product", schema = "test", catalog = "")
 data class ProductEntity(
 
@@ -22,9 +26,11 @@ data class ProductEntity(
         @Column(name = "prd_thumbnail", nullable = true)
         var prdThumbnail: String? = null,
 
+        @CreatedDate
         @Column(name = "prd_created_at", nullable = true)
         var prdCreatedAt: String? = null,
 
+        @LastModifiedDate
         @Column(name = "prd_updated_at", nullable = true)
         var prdUpdatedAt: String? = null,
 

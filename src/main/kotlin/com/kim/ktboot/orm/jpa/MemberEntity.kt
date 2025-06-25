@@ -2,8 +2,12 @@ package com.kim.ktboot.orm.jpa
 
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
 @Entity
+@EntityListeners(AuditingEntityListener::class)
 @Table(name = "member", schema = "test")
 data class MemberEntity(
     @Id
@@ -28,10 +32,12 @@ data class MemberEntity(
     var memGender: String? = null,
 
     @Size(max = 50)
+    @CreatedDate
     @Column(name = "mem_created_at", length = 50)
     var memCreatedAt: String? = null,
 
     @Size(max = 50)
+    @LastModifiedDate
     @Column(name = "mem_updated_at", length = 50)
     var memUpdatedAt: String? = null,
 
