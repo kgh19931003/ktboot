@@ -4,12 +4,15 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
+import java.nio.file.Paths
 
 @Configuration
 class WebConfig : WebMvcConfigurer {
     override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
-        registry.addResourceHandler("/**")
-            .addResourceLocations("classpath:/static/")
+        val uploadPath = Paths.get(System.getProperty("user.dir"), "uploads").toUri().toString()
+
+        registry.addResourceHandler("/uploads/**") // URL 패턴
+                .addResourceLocations(uploadPath)      // 실제 로컬 폴더
     }
 
     override fun addViewControllers(registry: ViewControllerRegistry) {

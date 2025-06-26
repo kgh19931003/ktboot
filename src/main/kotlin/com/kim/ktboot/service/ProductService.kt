@@ -3,6 +3,7 @@ package com.kim.ktboot.service
 import com.kim.ktboot.form.*
 import com.kim.ktboot.orm.jooq.ProductDslRepository
 import com.kim.ktboot.orm.jpa.ProductEntity
+import com.kim.ktboot.orm.jpa.ProductImgEntity
 import com.kim.ktboot.orm.jpa.ProductImgRepository
 import com.kim.ktboot.orm.jpa.ProductRepository
 import nowAsRegularFormat
@@ -38,18 +39,9 @@ class ProductService(
     /**
      * 특정 상품정보 조회
      */
-    fun getProductImageOne(prdId: Int): ProductImageList {
+    fun getProductImageOne(prdId: Int): List<ProductImgEntity> {
         return try {
-            productImgRepository.findByid(prdId).let{
-                ProductImageList(
-                    productImageIdx = it.id,
-                    productImagePrdIdx = it.prdiPrdIdx,
-                    productImageOriginName = it.prdiOriginName,
-                    productName = it.prdiName,
-                    productContentType = it.prdiContentType,
-                    productCreatedAt = nowAsRegularFormat()
-                )
-            }
+            productImgRepository.findByPrdiPrdIdxOrderByPrdiOrderAsc(prdId)
         } catch (e: Exception) {
             throw Exception(e)
         }

@@ -5,6 +5,7 @@ import com.kim.ktboot.form.*
 import com.kim.ktboot.model.Response
 import com.kim.ktboot.orm.jpa.*
 import com.kim.ktboot.proto.combine
+import com.kim.ktboot.proto.isNotNull
 import com.kim.ktboot.service.ExcelService
 import com.kim.ktboot.service.ProductService
 import jakarta.servlet.http.HttpServletResponse
@@ -17,6 +18,8 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
+import kotlin.io.path.pathString
 
 @RestController
 @RequestMapping("/product") // API 요청을 위한 기본 경로
@@ -29,11 +32,14 @@ class ProductController (
 
     @GetMapping("/one/{id}")
     fun productOne(@PathVariable id: Int): ProductList {
-        return productService.getProductOne(id)
+        return productService.getProductOne(id).let{ prdInfo ->
+            var productImage = productService.getProductImageOne(id)
+            prdInfo.copy(productImage = productImage.map { it.prdiSrc }, productUuid = productImage.map { it.prdiUuid })
+        }
     }
 
     @GetMapping("/image-one/{prdId}")
-    fun productImageOne(@PathVariable prdId: Int): ProductImageList {
+    fun productImageOne(@PathVariable prdId: Int): List<ProductImgEntity> {
         return productService.getProductImageOne(prdId)
     }
 
@@ -69,32 +75,61 @@ class ProductController (
                 prdUpdatedAt = nowAsRegularFormat()
         )
 
+        var productImageInfo = productService.getProductImageOne(id)
+
 
         productService.save(product).let{
-            files?.filterNot { it.isEmpty }?.forEach { file ->
+
+            println("form.productImage"+ form)
+
+            // 이미 등록되어있는 파일 정렬, 삭제
+            form.productImageUrl?.forEachIndexed{ index, value ->
+                val uuid = form.productUuid?.getOrNull(index)
+                val imagePath = value.substringBeforeLast("/")
+                val imageName = value.substringAfterLast("/")
+
+                println("uuid : "+ uuid)
+                println("imagePath : "+ imagePath)
+                println("imageName : "+ imageName)
+            }
+
+            // 신규로 등록되는 실제 파일
+            files?.filterNot { it.isEmpty }?.forEachIndexed  { index, file ->
                 val originalName = file.originalFilename ?: "unknown.png"
                 val extension = file.originalFilename?.substringAfterLast('.', "") ?: "png"
                 val savedName = nowAsTimestamp().combine(".$extension")
+                val root = System.getProperty("user.dir")
+                val uploadDir = Paths.get(root, "uploads", "product", "images")
+                val relativePath = uploadDir.toString().removePrefix(root).replace("\\", "/")
+                val src = relativePath.combine("/"+savedName!!)
+                val imageLength = productImageInfo.size
+                val orderIndex = imageLength.plus(index)
 
-                val uploadDir = Paths.get(System.getProperty("user.dir"), "uploads", "product", "images")
-
+                    // 신규 파일 저장
                 if (!Files.exists(uploadDir)) {
                     Files.createDirectories(uploadDir)
                 }
 
-                val targetPath = uploadDir.resolve(savedName!!)
-                file.transferTo(targetPath.toFile()) // 실제 저장
+                val targetPath = uploadDir.resolve(savedName)
+                file.transferTo(targetPath.toFile())
 
-                // DB 저장
                 productImgRepository.save(
                         ProductImgEntity(
                                 prdiPrdIdx = id,
                                 prdiOriginName = originalName,
                                 prdiName = savedName,
-                                prdiContentType = file.contentType?.substringAfter("/") ?: extension
+                                prdiDir = relativePath,
+                                prdiSrc = src,
+                                prdiOrder = orderIndex,
+                                prdiContentType = file.contentType?.substringAfter("/") ?: extension,
+                                prdiUuid = UUID.randomUUID().toString()
                         )
                 )
+
             }
+
+
+
         }
 
         return productService.save(product)

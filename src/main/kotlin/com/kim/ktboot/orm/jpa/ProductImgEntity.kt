@@ -18,7 +18,7 @@ data class ProductImgEntity (
     @GeneratedValue(strategy = GenerationType.IDENTITY)  // 자동 ID 생성 설정
     var id: Int? = null,
 
-    @Column(name = "prdi_prd_idx", nullable = true, unique = true)
+    @Column(name = "prdi_prd_idx", nullable = true)
     var prdiPrdIdx: Int? = null,
 
     @Column(name = "prdi_origin_name", nullable = true)
@@ -26,6 +26,9 @@ data class ProductImgEntity (
 
     @Column(name = "prdi_name", nullable = true)
     var prdiName: String? = null,
+
+    @Column(name = "prdi_dir", nullable = true)
+    var prdiDir: String? = null,
 
     @Column(name = "prdi_src", nullable = true)
     var prdiSrc: String? = null,
@@ -35,6 +38,12 @@ data class ProductImgEntity (
 
     @Column(name = "prdi_content_type", nullable = true)
     var prdiContentType: String? = null,
+
+    @Column(name = "prdi_order", nullable = true)
+    var prdiOrder: Int? = null,
+
+    @Column(name = "prdi_uuid", nullable = true)
+    var prdiUuid: String? = null,
 
     @CreatedDate
     @Column(name = "prdi_created_at", nullable = true)

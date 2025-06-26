@@ -86,6 +86,7 @@ class WebSecurityConfig {
                 "/php/**",
                 "/resources/**",
                 "/upload/**",
+                "/uploads/**",
                 "/error"
             )
                 .permitAll()
