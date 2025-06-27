@@ -6,8 +6,10 @@ import com.kim.ktboot.model.Response
 import com.kim.ktboot.orm.jpa.*
 import com.kim.ktboot.proto.combine
 import com.kim.ktboot.proto.isNotNull
+import com.kim.ktboot.proto.isNull
 import com.kim.ktboot.service.ExcelService
 import com.kim.ktboot.service.ProductService
+import deleteImageFile
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.transaction.Transactional
 import nowAsRegularFormat
@@ -34,7 +36,12 @@ class ProductController (
     fun productOne(@PathVariable id: Int): ProductList {
         return productService.getProductOne(id).let{ prdInfo ->
             var productImage = productService.getProductImageOne(id)
-            prdInfo.copy(productImage = productImage.map { it.prdiSrc }, productUuid = productImage.map { it.prdiUuid })
+            prdInfo.copy(
+                    productImgIdx = productImage.map { it.id },
+                    productImgOrder = productImage.map { it.prdiOrder },
+                    productImage = productImage.map { it.prdiSrc },
+                    productImageUuid = productImage.map { it.prdiUuid }
+            )
         }
     }
 
@@ -51,14 +58,56 @@ class ProductController (
 
     @PostMapping("/create")
     @Transactional
-    fun productCreate(@RequestBody form: ProductSearchForm): ProductEntity {
+    fun productCreate(
+            @RequestPart("form") form: ProductUpdateForm,
+            @RequestPart("productImage", required = false) files: List<MultipartFile>?
+    ): Any? {
         val productEntity = ProductEntity(
-            id = form.productIdx,
             prdName = form.productName,
             prdPrice = form.productPrice
         )
 
-        return productService.save(productEntity)
+        return try {
+            productService.save(productEntity).let {
+
+                // 신규로 등록되는 실제 파일
+                files?.filterNot { it.isEmpty }?.forEachIndexed { index, file ->
+                    val originalName = file.originalFilename ?: "unknown.png"
+                    val extension = file.originalFilename?.substringAfterLast('.', "") ?: "png"
+                    val savedName = nowAsTimestamp().combine(".$extension")
+                    val root = System.getProperty("user.dir")
+                    val uploadDir = Paths.get(root, "uploads", "product", "images")
+                    val relativePath = uploadDir.toString().removePrefix(root).replace("\\", "/")
+                    val src = relativePath.combine("/" + savedName!!)
+
+                    // 신규 파일 저장
+                    if (!Files.exists(uploadDir)) {
+                        Files.createDirectories(uploadDir)
+                    }
+
+                    val targetPath = uploadDir.resolve(savedName)
+                    file.transferTo(targetPath.toFile())
+
+                    productImgRepository.save(
+                            ProductImgEntity(
+                                    prdiPrdIdx = it.id,
+                                    prdiOriginName = originalName,
+                                    prdiName = savedName,
+                                    prdiDir = relativePath,
+                                    prdiSrc = src,
+                                    prdiContentType = file.contentType?.substringAfter("/") ?: extension,
+                                    prdiUuid = UUID.randomUUID().toString()
+                            )
+                    )
+
+                }
+
+            }
+        }
+        catch (e: Exception){
+            throw RuntimeException("파일 업로드 중 오류 발생")
+            //Response.fail("상품 저장실패", e.message)
+        }
     }
 
     @PostMapping("/update/{id}")
@@ -71,7 +120,7 @@ class ProductController (
         val product = productRepository.findByid(id).copy(
                 id = id,
                 prdName = form.productName,
-                prdPrice = form.productPrice.toBigDecimal(),
+                prdPrice = form.productPrice,
                 prdUpdatedAt = nowAsRegularFormat()
         )
 
@@ -79,19 +128,6 @@ class ProductController (
 
 
         productService.save(product).let{
-
-            println("form.productImage"+ form)
-
-            // 이미 등록되어있는 파일 정렬, 삭제
-            form.productImageUrl?.forEachIndexed{ index, value ->
-                val uuid = form.productUuid?.getOrNull(index)
-                val imagePath = value.substringBeforeLast("/")
-                val imageName = value.substringAfterLast("/")
-
-                println("uuid : "+ uuid)
-                println("imagePath : "+ imagePath)
-                println("imageName : "+ imageName)
-            }
 
             // 신규로 등록되는 실제 파일
             files?.filterNot { it.isEmpty }?.forEachIndexed  { index, file ->
@@ -102,8 +138,7 @@ class ProductController (
                 val uploadDir = Paths.get(root, "uploads", "product", "images")
                 val relativePath = uploadDir.toString().removePrefix(root).replace("\\", "/")
                 val src = relativePath.combine("/"+savedName!!)
-                val imageLength = productImageInfo.size
-                val orderIndex = imageLength.plus(index)
+                val imageOrder = form.productImageOrder?.get(index)
 
                     // 신규 파일 저장
                 if (!Files.exists(uploadDir)) {
@@ -120,12 +155,54 @@ class ProductController (
                                 prdiName = savedName,
                                 prdiDir = relativePath,
                                 prdiSrc = src,
-                                prdiOrder = orderIndex,
+                                prdiOrder = index,
                                 prdiContentType = file.contentType?.substringAfter("/") ?: extension,
                                 prdiUuid = UUID.randomUUID().toString()
                         )
                 )
 
+            }
+
+
+            // 이미 등록되어있는 파일 정렬
+            form.productImageOriginalIndex?.forEachIndexed{ index, value ->
+
+                if(form.productImageIndex?.get(index) == -1) return@forEachIndexed
+
+                val imageOrder = form.productImageOrder?.get(index)
+                val imageIndex = form.productImageIndex?.get(index)
+                val imageOriginalIndex = value;
+
+                if(imageIndex != imageOriginalIndex){
+                    val productInfo = productImgRepository.findByid(imageIndex!!)
+                    productImgRepository.save(
+                        productInfo?.copy(
+                            prdiOrder = imageOrder
+                        )
+                    )
+                }
+
+                /*
+                productImgRepository.findByidAndPrdiOrder(value, imageOrder) ?:
+                productImgRepository.save(
+                    productInfo?.copy(
+                        prdiOrder = (index+1)
+                    )
+                )
+                 */
+            }
+
+
+            // 이미 등록되어있는 파일 삭제
+            form.productImageDeleteIndex?.forEachIndexed{ index, value ->
+                val productInfo = productImgRepository.findByid(value)
+
+                val root = System.getProperty("user.dir")  // 예: /home/ubuntu/project
+                val imagePath = Paths.get(root, "uploads", "product", "images", productInfo?.prdiName).toString()
+
+                deleteImageFile(imagePath).let{
+                    productImgRepository.deleteById(value.toInt())
+                }
             }
 
 

@@ -21,7 +21,7 @@ data class ProductEntity(
         var prdName: String? = null,
 
         @Column(name = "prd_price", nullable = true)
-        var prdPrice: BigDecimal? = null,
+        var prdPrice: Long? = null,
 
         @Column(name = "prd_thumbnail", nullable = true)
         var prdThumbnail: String? = null,
