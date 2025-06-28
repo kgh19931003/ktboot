@@ -28,6 +28,15 @@ repositories {
     mavenCentral()
 }
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.flywaydb:flyway-mysql:10.11.0")
+    }
+}
+
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
@@ -39,10 +48,9 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt:0.9.1")
     implementation("javax.xml.bind:jaxb-api:2.4.0-b180830.0359")
     implementation("org.flywaydb:flyway-core:10.11.0")
-    //implementation("org.flywaydb:flyway-mysql")
+    implementation("org.flywaydb:flyway-mysql:10.11.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.4.1")
-
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client:3.4.1")
     implementation("org.jooq:jooq:3.18.0")
 
@@ -196,7 +204,6 @@ tasks.withType<Test> {
 
 
 
-tasks.named("flywayMigrate").configure {
-    dependsOn("classes") // classpath 보장
+tasks.named("generateRefitJooq") {
+    dependsOn("flywayMigrate")
 }
-
