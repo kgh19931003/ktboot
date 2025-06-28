@@ -3,7 +3,9 @@ import java.util.Properties
 import java.util.Locale
 
 
+
 plugins {
+    id("org.flywaydb.flyway") version "10.11.0" // 버전은 최신 기준
     kotlin("jvm") version "1.9.25"
     kotlin("plugin.spring") version "1.9.25"
     id("org.springframework.boot") version "3.4.0"
@@ -36,16 +38,18 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("io.jsonwebtoken:jjwt:0.9.1")
     implementation("javax.xml.bind:jaxb-api:2.4.0-b180830.0359")
-    implementation("org.flywaydb:flyway-core")
-    implementation("org.flywaydb:flyway-mysql")
+    implementation("org.flywaydb:flyway-core:10.11.0")
+    //implementation("org.flywaydb:flyway-mysql")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.4.1")
+
+    runtimeOnly("org.mariadb.jdbc:mariadb-java-client:3.4.1")
     implementation("org.jooq:jooq:3.18.0")
 
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
     implementation("org.springframework.boot:spring-boot-starter-logging")
 
-    implementation("mysql:mysql-connector-java:8.0.28")
+    //implementation("mysql:mysql-connector-java:8.0.28")
     implementation("com.zaxxer:HikariCP")
 
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
@@ -78,6 +82,17 @@ sourceSets {
     }
 }
 
+
+
+flyway {
+    driver = "org.mariadb.jdbc.Driver"
+    url = "jdbc:mariadb://127.0.0.1:3306/test"
+    user = "root"
+    password = "123123"
+    locations = arrayOf("classpath:db/migration")
+}
+
+
 data class jdbcForm(
         var jdbcUrl: String? = null,
         var user: String? = null,
@@ -85,21 +100,20 @@ data class jdbcForm(
         var inputSchema: String? = null
 )
 
-
 jooq {
     version.set("3.18.0")
     edition.set(nu.studer.gradle.jooq.JooqEdition.OSS)
 
     configurations {
         create("refit") {
-            generateSchemaSourceOnCompilation.set(true)
+            generateSchemaSourceOnCompilation.set(false)
 
             jooqConfiguration.apply {
 
 
                 val osName = System.getProperty("os.name").lowercase(Locale.getDefault())
                 val jdbcForm = jdbcForm().apply {
-                    if (osName.contains("win")) {
+                    if (osName.contains("win") || osName.contains("mac")) {
                         jdbcUrl = "jdbc:mariadb://127.0.0.1:3306/test"
                         user = "root"
                         password = "123123"
@@ -178,5 +192,11 @@ allOpen {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+
+
+tasks.named("flywayMigrate").configure {
+    dependsOn("classes") // classpath 보장
 }
 
