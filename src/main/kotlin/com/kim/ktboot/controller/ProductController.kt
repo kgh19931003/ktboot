@@ -124,8 +124,19 @@ class ProductController (
                 prdUpdatedAt = nowAsRegularFormat()
         )
 
-        var productImageInfo = productService.getProductImageOne(id)
+        // 이미 등록되어있는 파일 삭제
+        form.productImageDeleteIndex?.forEachIndexed{ index, value ->
+            val productImageInfo = productImgRepository.findByid(value)
 
+            val root = System.getProperty("user.dir")  // 예: /home/ubuntu/project
+            val imagePath = Paths.get(root, "uploads", "product", "images", productImageInfo?.prdiName).toString()
+
+            productImgRepository.decrementOrderGreaterThan(id ,productImageInfo!!.prdiOrder).let{
+                deleteImageFile(imagePath).let{
+                    productImgRepository.deleteById(value)
+                }
+            }
+        }
 
         productService.save(product).let{
 
@@ -138,7 +149,9 @@ class ProductController (
                 val uploadDir = Paths.get(root, "uploads", "product", "images")
                 val relativePath = uploadDir.toString().removePrefix(root).replace("\\", "/")
                 val src = relativePath.combine("/"+savedName!!)
-                val imageOrder = form.productImageOrder?.get(index)
+                val multipartFileOrder = form.productImageMultipartFileOrder?.get(index)
+
+
 
                     // 신규 파일 저장
                 if (!Files.exists(uploadDir)) {
@@ -155,7 +168,7 @@ class ProductController (
                                 prdiName = savedName,
                                 prdiDir = relativePath,
                                 prdiSrc = src,
-                                prdiOrder = index,
+                                prdiOrder = multipartFileOrder,
                                 prdiContentType = file.contentType?.substringAfter("/") ?: extension,
                                 prdiUuid = UUID.randomUUID().toString()
                         )
@@ -165,47 +178,16 @@ class ProductController (
 
 
             // 이미 등록되어있는 파일 정렬
-            form.productImageOriginalIndex?.forEachIndexed{ index, value ->
-
-                if(form.productImageIndex?.get(index) == -1) return@forEachIndexed
-
-                val imageOrder = form.productImageOrder?.get(index)
+            form.productImageIndex?.forEachIndexed{ index, value ->
                 val imageIndex = form.productImageIndex?.get(index)
-                val imageOriginalIndex = value;
 
-                if(imageIndex != imageOriginalIndex){
-                    val productInfo = productImgRepository.findByid(imageIndex!!)
-                    productImgRepository.save(
-                        productInfo?.copy(
-                            prdiOrder = imageOrder
-                        )
-                    )
-                }
-
-                /*
-                productImgRepository.findByidAndPrdiOrder(value, imageOrder) ?:
+                val productInfo = productImgRepository.findByid(imageIndex!!)
                 productImgRepository.save(
-                    productInfo?.copy(
-                        prdiOrder = (index+1)
-                    )
+                        productInfo?.copy(
+                                prdiOrder = index
+                        )
                 )
-                 */
             }
-
-
-            // 이미 등록되어있는 파일 삭제
-            form.productImageDeleteIndex?.forEachIndexed{ index, value ->
-                val productInfo = productImgRepository.findByid(value)
-
-                val root = System.getProperty("user.dir")  // 예: /home/ubuntu/project
-                val imagePath = Paths.get(root, "uploads", "product", "images", productInfo?.prdiName).toString()
-
-                deleteImageFile(imagePath).let{
-                    productImgRepository.deleteById(value.toInt())
-                }
-            }
-
-
 
         }
 

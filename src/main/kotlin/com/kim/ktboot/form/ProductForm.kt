@@ -1,5 +1,7 @@
 package com.kim.ktboot.form
 
+import com.fasterxml.jackson.annotation.JsonInclude
+
 
 data class ProductUpdateForm(
         val productName: String,
@@ -8,6 +10,7 @@ data class ProductUpdateForm(
         val productImageIndex: List<Int>? = null,
         val productImageOriginalIndex: List<Int>? = null,
         val productImageDeleteIndex: List<Int>? = null,
+        val productImageMultipartFileOrder: List<Int>? = null,
         val productImageOrder: List<Int>? = null,
         val productImageUuid: List<String>? = null,
         val productImageDeleteUuid: List<String>? = null
@@ -21,6 +24,7 @@ data class ProductCreateForm(
 )
 
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class ProductList(
         val productIdx: Int?,
         val productImgIdx: List<Int?>? = null,
