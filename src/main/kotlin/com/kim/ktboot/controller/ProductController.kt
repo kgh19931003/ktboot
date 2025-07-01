@@ -140,6 +140,8 @@ class ProductController (
 
         productService.save(product).let{
 
+            println("form.productImageMultipartFileOrder : "+form.productImageMultipartFileOrder)
+
             // 신규로 등록되는 실제 파일
             files?.filterNot { it.isEmpty }?.forEachIndexed  { index, file ->
                 val originalName = file.originalFilename ?: "unknown.png"
@@ -179,12 +181,15 @@ class ProductController (
 
             // 이미 등록되어있는 파일 정렬
             form.productImageIndex?.forEachIndexed{ index, value ->
-                val imageIndex = form.productImageIndex?.get(index)
+                val imageIndex = index
+                val imageOrder = form.productImageOrder?.get(imageIndex)
 
-                val productInfo = productImgRepository.findByid(imageIndex!!)
+                println("imageIndex : $imageIndex , imageOrder : $imageOrder")
+
+                val productInfo = productImgRepository.findByid(value)
                 productImgRepository.save(
                         productInfo?.copy(
-                                prdiOrder = index
+                                prdiOrder = imageOrder
                         )
                 )
             }
